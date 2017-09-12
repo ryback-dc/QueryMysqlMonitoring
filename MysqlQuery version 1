@@ -1,0 +1,36 @@
+Database Space Usage Report
+
+SELECT s.schema_name, 
+CONCAT(IFNULL(ROUND((SUM(t.data_length)+SUM(t.index_length))/1024/1024,2),0.00),"Mb") total_size,
+CONCAT(IFNULL(ROUND(((SUM(t.data_length)+SUM(t.index_length))-SUM(t.data_free))/1024/1024,2),0.00),"Mb") data_used,
+CONCAT(IFNULL(ROUND(SUM(data_free)/1024/1024,2),0.00),"Mb") data_free,
+IFNULL(ROUND((((SUM(t.data_length)+SUM(t.index_length))-SUM(t.data_free))/((SUM(t.data_length)+SUM(t.index_length)))*100),2),0) pct_used
+FROM INFORMATION_SCHEMA.SCHEMATA s, INFORMATION_SCHEMA.TABLES t
+WHERE s.schema_name = t.table_schema
+GROUP BY s.schema_name
+ORDER BY total_size DESC
+
+
+Table Space Usage Report
+
+SELECT s.schema_name, table_name, 
+CONCAT(IFNULL(ROUND((SUM(t.data_length)+SUM(t.index_length))/1024/1024,2),0.00),"Mb") total_size,
+CONCAT(IFNULL(ROUND(((SUM(t.data_length)+SUM(t.index_length))-SUM(t.data_free))/1024/1024,2),0.00),"Mb") data_used,
+CONCAT(IFNULL(ROUND(SUM(data_free)/1024/1024,2),0.00),"Mb") data_free,
+IFNULL(ROUND((((SUM(t.data_length)+SUM(t.index_length))-SUM(t.data_free))/((SUM(t.data_length)+SUM(t.index_length)))*100),2),0) pct_used
+FROM INFORMATION_SCHEMA.SCHEMATA s, INFORMATION_SCHEMA.TABLES t
+WHERE s.schema_name = t.table_schema
+GROUP BY s.schema_name, table_name
+ORDER BY total_size DESC
+
+
+
+Check for Tables that have Free Space
+
+SELECT s.schema_name, table_name,
+IFNULL(ROUND(SUM(data_free)/1024,2),0.00) data_free
+FROM INFORMATION_SCHEMA.SCHEMATA s, INFORMATION_SCHEMA.TABLES t
+WHERE s.schema_name = t.table_schema
+GROUP BY s.schema_name, table_name
+HAVING data_free > 100
+ORDER BY data_free DESC
